@@ -1,0 +1,48 @@
+{
+  "name": "script",
+  "version": "0.1.0",
+  "main": "public/main.js",
+  "homepage": "./",
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test — env=jsdom",
+    "eject": "react-scripts eject",
+    "electron-start": "electron .",
+    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-pack": "build — em.main=build/main.js",
+    "preelectron-pack": "yarn build"
+  },
+  "dependencies": {
+    "electron-is-dev": "0.3.0",
+    "immutable": "^4.0.0-rc.12",
+    "react": "16.7.0",
+    "react-dom": "16.7.0",
+    "react-scripts": "2.1.2",
+    "slate": "^0.44.9",
+    "slate-react": "^0.21.15"
+  },
+  "devDependencies": {
+    "concurrently": "3.5.0",
+    "electron": "4.0.0",
+    "electron-builder": "19.27.7",
+    "wait-on": "3.2.0"
+  },
+  "build": {
+    "appId": "com.cdubs.script",
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
