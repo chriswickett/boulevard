@@ -16,23 +16,42 @@ html {
 
 .App {
   height: 100%;
+  /* background-color: #f5f5f7; */
 }
 
 [data-slate-editor] {
+  margin: 50px auto;
+  max-width: 81ch;
   font-family: 'Courier', Courier, monospace;
+  background-color: #fff;
+  min-height: 500px;
+}
+
+.scene-header {
+  padding-left: 10ch;
+  padding-right: 10ch;
+  max-width: 81ch;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.action {
+  padding-left: 10ch;
+  padding-right: 10ch;
+  max-width: 81ch;
 }
 
 .character {
-  margin-left: 300px;
+  padding-left: 30ch;
   text-transform: uppercase;
 }
 
 .dialogue {
-  margin-left: 200px;
-  max-width: 330px;
+  padding-left: 20ch;
+  max-width: 55ch;
 }
 
 .parenthetical {
-  margin-left: 225px;
-  max-width: 305px;
+  padding-left: 24ch;
+  max-width: 41ch;
 }

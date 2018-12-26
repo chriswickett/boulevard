@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "main": "public/main.js",
   "homepage": "./",
+  "productName": "Boulevard",
   "private": true,
   "scripts": {
     "start": "react-scripts start",
@@ -16,13 +17,15 @@
   },
   "dependencies": {
     "electron-is-dev": "0.3.0",
+    "electron-store": "^2.0.0",
     "immutable": "^4.0.0-rc.12",
     "react": "16.7.0",
     "react-dom": "16.7.0",
     "react-scripts": "2.1.2",
     "redux": "^4.0.1",
     "slate": "^0.44.9",
-    "slate-react": "^0.21.15"
+    "slate-react": "^0.21.15",
+    "underscore": "^1.9.1"
   },
   "devDependencies": {
     "concurrently": "3.5.0",

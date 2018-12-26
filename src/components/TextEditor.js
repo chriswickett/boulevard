@@ -1,10 +1,13 @@
 import React, { Component} from 'react';
 import { Editor } from 'slate-react';
-import CharacterNode from './CharacterNode';
-import DialogueNode from './DialogueNode';
-import ActionNode from './ActionNode';
-import ParentheticalNode from './ParentheticalNode';
+import CharacterNode from './nodes/CharacterNode';
+import DialogueNode from './nodes/DialogueNode';
+import ActionNode from './nodes/ActionNode';
+import ParentheticalNode from './nodes/ParentheticalNode';
+import SceneHeaderNode from './nodes/SceneHeaderNode';
 import { Value } from 'slate';
+
+const { ipcRenderer } = window.require('electron');
 
 export default class TextEditor extends Component {
 
@@ -35,26 +38,45 @@ export default class TextEditor extends Component {
             return editor.splitBlock().setBlocks('dialogue');
           }
         case "dialogue": return editor.splitBlock().setBlocks('action');
+        case "sceneHeader": return editor.splitBlock().setBlocks('action');
         default: return editor.splitBlock();
       }
     },
     "Backspace": editor => {
       editor.moveFocusBackward(1).delete();
-    }
+    },
+    ".": editor => {
+      if (!!editor.value.startBlock.text.match(/^INT|^EXT/)) {
+        editor.setBlocks('sceneHeader').insertText(".")
+      } else {
+        editor.insertText(".")
+      }
+    },
+
   }
 
   onChange = ({ value }) => {
     if (value.document !== this.state.value.document) {
-      localStorage.setItem('content', JSON.stringify(value))
+      localStorage.setItem('content', JSON.stringify(value.toJSON()));
+      ipcRenderer.send('contentChanged');
     }
 
     this.setState({value})
   }
 
   onKeyDown = (e, editor) => {
-    if (!this.keyHandlers.hasOwnProperty(e.key)) { return false; }
-    e.preventDefault();
-    return this.keyHandlers[e.key](editor);
+    if (this.keyHandlers.hasOwnProperty(e.key)){
+      e.preventDefault();
+      return this.keyHandlers[e.key](editor);
+    } else if (e.metaKey) {
+      switch (e.key) {
+        case "z": e.preventDefault(); return editor.undo();
+        case "y": e.preventDefault(); return editor.redo();
+        default: return false;
+      }
+    } else {
+      return false;
+    }
   }
 
   renderNode = (props, editor, next) => {
@@ -65,6 +87,8 @@ export default class TextEditor extends Component {
         return <DialogueNode {...props} />;
       case 'parenthetical':
         return <ParentheticalNode {...props} />;
+        case 'sceneHeader':
+        return <SceneHeaderNode {...props} />;
       case 'action':
         return <ActionNode {...props} />;
       default:
@@ -73,7 +97,7 @@ export default class TextEditor extends Component {
   }
 
   static getDerivedStateFromProps = (props, state) => {
-    // Override the state from the open dialogue
+    // Override the state from the open dialogue. This is probably not ideal but it works for now.
     if (props.value.opened) {
       delete props.value['opened'];
       return {value: Value.fromJSON(props.value.data)};

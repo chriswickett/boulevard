@@ -7,7 +7,7 @@ import { createStore } from 'redux'
 
 const { ipcRenderer } = window.require('electron');
 
-const defaultVal = {
+const defaultState = {
   data: {
     document: {
       nodes: [
@@ -30,10 +30,10 @@ const defaultVal = {
   }
 }
 
-function files(state = defaultVal, action) {
+function files(state = defaultState, action) {
   switch (action.type) {
     case 'OPEN_FILE':
-      let data = JSON.parse(action.data.replace(/\n/g, "\n").replace(/\r/g, "\r").replace(/\t/g, "\t").replace(/\f/g, "\f"));
+      let data = (action.data) ? JSON.parse(action.data): defaultState.data;
       return { data: data, opened: 'true' };
     default:
       console.log('default');
