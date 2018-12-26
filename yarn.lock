@@ -3059,6 +3059,10 @@ electron-is-dev@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/electron-is-dev/-/electron-is-dev-0.3.0.tgz#14e6fda5c68e9e4ecbeff9ccf037cbd7c05c5afe"
 
+electron-localshortcut@^0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/electron-localshortcut/-/electron-localshortcut-0.6.1.tgz#c4e268c38a6e42f40de5618fc906d1ed608f11aa"
+
 electron-osx-sign@0.4.7:
   version "0.4.7"
   resolved "https://registry.yarnpkg.com/electron-osx-sign/-/electron-osx-sign-0.4.7.tgz#1d75647a82748eacd48bea70616ec83ffade3ee5"
@@ -3090,6 +3094,14 @@ electron-store@^2.0.0:
 electron-to-chromium@^1.3.62, electron-to-chromium@^1.3.92:
   version "1.3.96"
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.96.tgz#25770ec99b8b07706dedf3a5f43fa50cb54c4f9a"
+
+electron-window-manager@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/electron-window-manager/-/electron-window-manager-1.0.6.tgz#106adc66d3a31af6b7e1ead4a2fd39accb8bdd9c"
+  dependencies:
+    electron-localshortcut "^0.6.1"
+    melanke-watchjs "^1.3.1"
+    underscore "^1.8.3"
 
 electron@4.0.0:
   version "4.0.0"
@@ -5743,6 +5755,10 @@ mdn-data@~1.1.0:
 media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
+
+melanke-watchjs@^1.3.1:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/melanke-watchjs/-/melanke-watchjs-1.5.0.tgz#d82354ae47ed69580e7237644e7043e367534754"
 
 mem@^1.1.0:
   version "1.1.0"
@@ -8976,7 +8992,7 @@ uglifyjs-webpack-plugin@^1.2.4:
     webpack-sources "^1.1.0"
     worker-farm "^1.5.2"
 
-underscore@^1.9.1:
+underscore@^1.8.3, underscore@^1.9.1:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.1.tgz#06dce34a0e68a7babc29b365b8e74b8925203961"
 

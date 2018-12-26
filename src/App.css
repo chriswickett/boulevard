@@ -22,9 +22,16 @@ html {
 [data-slate-editor] {
   margin: 50px auto;
   max-width: 81ch;
-  font-family: 'Courier', Courier, monospace;
   background-color: #fff;
   min-height: 500px;
+  caret-color: #666;
+
+  font-family: 'Courier Prime Sans', monospace;
+  font-size: 17px;
+  font-weight: regular;
+  line-height: 1.35em;
+  letter-spacing: 0.3px;
+  -webkit-font-smoothing: subpixel-antialiased;
 }
 
 .scene-header {

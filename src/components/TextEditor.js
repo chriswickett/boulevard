@@ -4,6 +4,10 @@ import CharacterNode from './nodes/CharacterNode';
 import DialogueNode from './nodes/DialogueNode';
 import ActionNode from './nodes/ActionNode';
 import ParentheticalNode from './nodes/ParentheticalNode';
+import BoldMark from './marks/BoldMark';
+import ItalicMark from './marks/ItalicMark';
+import UnderlineMark from './marks/UnderlineMark';
+
 import SceneHeaderNode from './nodes/SceneHeaderNode';
 import { Value } from 'slate';
 
@@ -72,6 +76,9 @@ export default class TextEditor extends Component {
       switch (e.key) {
         case "z": e.preventDefault(); return editor.undo();
         case "y": e.preventDefault(); return editor.redo();
+        case "b": e.preventDefault(); return editor.toggleMark('bold');
+        case "i": e.preventDefault(); return editor.toggleMark('italic');
+        case "u": e.preventDefault(); return editor.toggleMark('underline');
         default: return false;
       }
     } else {
@@ -96,6 +103,19 @@ export default class TextEditor extends Component {
     }
   }
 
+  renderMark = (props, editor, next) => {
+    switch(props.mark.type) {
+      case 'bold':
+        return <BoldMark {...props} />;
+      case 'italic':
+        return <ItalicMark {...props} />;
+      case 'underline':
+        return <UnderlineMark {...props} />;
+      default:
+        return next();
+    }
+  }
+
   static getDerivedStateFromProps = (props, state) => {
     // Override the state from the open dialogue. This is probably not ideal but it works for now.
     if (props.value.opened) {
@@ -111,6 +131,7 @@ export default class TextEditor extends Component {
         onKeyDown={(a,b) =>this.onKeyDown(a,b)}
         onChange={change => this.onChange(change)}
         renderNode={this.renderNode}
+        renderMark={this.renderMark}
       />
     )
   }
