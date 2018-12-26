@@ -6,7 +6,7 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <TextEditor />
+        <TextEditor value={this.props.value}/>
       </div>
     );
   }
