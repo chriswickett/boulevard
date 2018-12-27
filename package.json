@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "main": "public/main.js",
   "homepage": "./",
-  "productName": "Boulevard",
   "private": true,
+  "description": "A screenwriting app",
+  "author": "Chris Wickett",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -12,8 +13,9 @@
     "eject": "react-scripts eject",
     "electron-start": "electron .",
     "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron-pack": "build — em.main=build/main.js",
-    "preelectron-pack": "yarn build"
+    "electron-pack": "build -c.extraMetadata.main=build/main.js",
+    "preelectron-pack": "yarn build",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "electron-is-dev": "0.3.0",
@@ -31,11 +33,15 @@
   "devDependencies": {
     "concurrently": "3.5.0",
     "electron": "4.0.0",
-    "electron-builder": "19.27.7",
+    "electron-builder": "20.38.4",
     "wait-on": "3.2.0"
   },
   "build": {
-    "appId": "com.cdubs.script",
+    "appId": "com.cdubs.boulevard.app",
+    "productName": "Boulevard",
+    "mac": {
+      "category": "public.app-category.entertainment"
+    },
     "files": [
       "build/**/*",
       "node_modules/**/*"

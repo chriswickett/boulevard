@@ -48,6 +48,13 @@ html {
   max-width: 81ch;
 }
 
+.transition {
+  text-align: right;
+  padding-left: 10ch;
+  padding-right: 15ch;
+  max-width: 81ch;
+}
+
 .character {
   padding-left: 30ch;
   text-transform: uppercase;

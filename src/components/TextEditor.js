@@ -4,11 +4,14 @@ import CharacterNode from './nodes/CharacterNode';
 import DialogueNode from './nodes/DialogueNode';
 import ActionNode from './nodes/ActionNode';
 import ParentheticalNode from './nodes/ParentheticalNode';
+import SceneHeaderNode from './nodes/SceneHeaderNode';
+import TransitionNode from './nodes/TransitionNode';
+
 import BoldMark from './marks/BoldMark';
 import ItalicMark from './marks/ItalicMark';
 import UnderlineMark from './marks/UnderlineMark';
+import CenterMark from './marks/CenterMark';
 
-import SceneHeaderNode from './nodes/SceneHeaderNode';
 import { Value } from 'slate';
 
 const { ipcRenderer } = window.require('electron');
@@ -17,6 +20,7 @@ export default class TextEditor extends Component {
 
   state = {
     value: Value.fromJSON(this.props.value.data),
+    autoFormatted: false
   }
 
   keyHandlers = {
@@ -24,9 +28,15 @@ export default class TextEditor extends Component {
       switch(editor.value.startBlock.type) {
         case "dialogue":
           if (editor.value.startBlock.text.length > 0) return true;
+          this.state.autoFormatted = "inProgress";
           return editor.setBlocks('parenthetical').insertText("()").moveAnchorBackward(1).moveFocusBackward(1);
         case "action":
-          return editor.setBlocks('character');
+          if (editor.value.previousBlock && (editor.value.previousBlock.type === "dialogue" || editor.value.previousBlock.type === "character")) {
+            this.state.autoFormatted = "inProgress";
+            return editor.setBlocks('parenthetical').insertText("()").moveAnchorBackward(1).moveFocusBackward(1);
+          } else {
+            return editor.setBlocks('character');
+          }
         default: return true;
       }
     },
@@ -43,20 +53,41 @@ export default class TextEditor extends Component {
           }
         case "dialogue": return editor.splitBlock().setBlocks('action');
         case "sceneHeader": return editor.splitBlock().setBlocks('action');
+        case "transition": return editor.splitBlock().setBlocks('action');
         default: return editor.splitBlock();
       }
     },
     "Backspace": editor => {
-      editor.moveFocusBackward(1).delete();
+      if (editor.value.startText.text.length === 0 && !editor.value.previousBlock) {
+        if (editor.value.startBlock.type !== "action") {
+          editor.setBlocks('action');
+        } else {
+          return false;
+        }
+      }
+      if (this.state.autoFormatted === "active") {
+        if (editor.value.startBlock.text === "()") editor.moveToEndOfBlock().moveFocusBackward(2).delete();
+        editor.setBlocks('action');
+      } else {
+        editor.moveFocusBackward(1).delete();
+      }
     },
     ".": editor => {
       if (!!editor.value.startBlock.text.match(/^INT|^EXT/)) {
         editor.setBlocks('sceneHeader').insertText(".")
+        this.state.autoFormatted = "inProgress";
       } else {
         editor.insertText(".")
       }
     },
-
+    ":": editor => {
+      if (!!editor.value.startBlock.text.match(/^CUT TO|^FADE TO|^SMASH CUT TO/g)) {
+        editor.setBlocks('transition').insertText(":")
+        this.state.autoFormatted = "inProgress";
+      } else {
+        editor.insertText(":")
+      }
+    },
   }
 
   onChange = ({ value }) => {
@@ -64,8 +95,8 @@ export default class TextEditor extends Component {
       localStorage.setItem('content', JSON.stringify(value.toJSON()));
       ipcRenderer.send('contentChanged');
     }
-
-    this.setState({value})
+    const autoFormatted = (this.state.autoFormatted === "inProgress") ? "active" : false;
+    this.setState({value, autoFormatted})
   }
 
   onKeyDown = (e, editor) => {
@@ -79,6 +110,7 @@ export default class TextEditor extends Component {
         case "b": e.preventDefault(); return editor.toggleMark('bold');
         case "i": e.preventDefault(); return editor.toggleMark('italic');
         case "u": e.preventDefault(); return editor.toggleMark('underline');
+        case "e": e.preventDefault(); return editor.toggleMark('center');
         default: return false;
       }
     } else {
@@ -94,10 +126,12 @@ export default class TextEditor extends Component {
         return <DialogueNode {...props} />;
       case 'parenthetical':
         return <ParentheticalNode {...props} />;
-        case 'sceneHeader':
+      case 'sceneHeader':
         return <SceneHeaderNode {...props} />;
       case 'action':
         return <ActionNode {...props} />;
+      case 'transition':
+        return <TransitionNode {...props} />;
       default:
         return next();
     }
@@ -111,6 +145,8 @@ export default class TextEditor extends Component {
         return <ItalicMark {...props} />;
       case 'underline':
         return <UnderlineMark {...props} />;
+      case 'center':
+        return <CenterMark {...props} />;
       default:
         return next();
     }
@@ -132,6 +168,8 @@ export default class TextEditor extends Component {
         onChange={change => this.onChange(change)}
         renderNode={this.renderNode}
         renderMark={this.renderMark}
+        autoCorrect={!!"true"}
+        spellCheck={!!"true"}
       />
     )
   }

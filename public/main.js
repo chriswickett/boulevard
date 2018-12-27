@@ -4,7 +4,83 @@ const path = require('path');
 const fs = require('fs');
 const Store = require('electron-store');
 const windowManager = require('electron-window-manager');
-const slateToFountain = require('../src/slateToFountain');
+// const slateToFountain = require('../src/slateToFountain');
+
+const saveDialogOptions = { filters: [{ name: 'Boulevard file', extensions: ['blvd'] }] };
+const openDialogOptions = { filters: [{ name: 'Boulevard file', extensions: ['blvd'] }] };
+const exportDialogOptions = { filters: [{ name: 'Plain text file', extensions: ['txt'] }] };
+
+const removeKey = (obj, key) => {
+  for(prop in obj) {
+    if (prop === key)
+      delete obj[prop];
+    else if (typeof obj[prop] === 'object')
+      removeKey(obj[prop], key);
+  }
+}
+
+const markWrapper = {
+  bold(text)      { return `**${text}**` },
+  italic(text)    { return `*${text}*`},
+  underline(text) { return `_${text}_`}
+}
+
+const buildObject = (obj) => {
+
+  removeKey(obj, "data");
+  removeKey(obj, "object");
+
+  let _obj = [];
+  obj.document.nodes.forEach(node => {
+    let leaves = node.nodes[0].leaves;
+    leaves = leaves.map(leaf => {
+      let markTypes = leaf.marks.map(mark => mark.type);
+      if (markTypes.length > 0) {
+        return markTypes.reduce((text, markType) => {
+          if (leaf.text.length === 0) return "";
+          return markWrapper[markType](text);
+        }, leaf.text);
+      } else {
+        return leaf.text;
+      }
+    });
+
+    let _node = {
+      type: node.type,
+      text: leaves.join('')
+    };
+
+    _obj.push(_node);
+  });
+  return _obj;
+}
+
+const buildFountain = obj => {
+  let txt = "";
+  obj.forEach(element => {
+    switch (element.type) {
+      case "sceneHeader":
+        return txt += `${element.text.toUpperCase()}\n`;
+      case "action":
+        return txt += `${element.text}\n`;
+      case "dialogue":
+        return txt += `${element.text}\n`;
+      case "character":
+        return txt += `${element.text.toUpperCase()}\n`;
+      case "parenthetical":
+        return txt += `${element.text}\n`;
+      case "transition":
+        return txt += `${element.text.toUpperCase()}\n`;
+      default: return true;
+    }
+  });
+  return txt;
+};
+
+const slateToFountain = input => {
+  return buildFountain(buildObject(input));
+}
+
 
 windowManager.customFunctions = {
   updateMeta(filePath, target) {
@@ -18,7 +94,7 @@ windowManager.customFunctions = {
     target.setTitle(title);
   },
   openFile() {
-    dialog.showOpenDialog((filePaths) => {
+    dialog.showOpenDialog(openDialogOptions, filePaths => {
       if(filePaths === undefined) return console.log("No file selected");
       let filePath = filePaths[0];
       fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -47,7 +123,7 @@ windowManager.customFunctions = {
   },
   saveFileAs(onComplete) {
     ipcMain.once('saveFileContents', (event, data) => {
-      dialog.showSaveDialog(filePath => {
+      dialog.showSaveDialog(saveDialogOptions, filePath => {
         if (filePath === undefined) return;
         fs.writeFile(filePath, data, (err) => {
           if (err) alert("An error ocurred creating the file " + err.message);
@@ -60,7 +136,7 @@ windowManager.customFunctions = {
   },
   exportFileAs() {
     ipcMain.once('saveFileContents', (event, data) => {
-      dialog.showSaveDialog(filePath => {
+      dialog.showSaveDialog(exportDialogOptions, filePath => {
         if (filePath === undefined) return;
         const txt = slateToFountain(JSON.parse(data));
         fs.writeFile(filePath, txt, (err) => {
@@ -78,19 +154,12 @@ windowManager.customFunctions = {
       windowManager.customFunctions.saveFileAs(onComplete);
     }
   },
-  newFile() {
-    let title = 'Untitled script';
-    let win = windowManager.getCurrent().object;
-    win.documentStore = { title, saved: true };
-    win.setTitle(title);
-    win.send('fileOpened')
-  },
   handleUnsavedChanges(onComplete) {
     let win = windowManager.getCurrent().object;
-    if (win.documentStore.documentStore.saved) {
-      onComplete();
-    } else {
+    if (win && !win.documentStore.saved) {
       windowManager.customFunctions.continueIf(onComplete);
+    } else {
+      onComplete();
     }
   },
 
@@ -99,17 +168,17 @@ windowManager.customFunctions = {
     const options = {
       type: "warning",
       message: "You have unsaved changes. Save changes first?",
-      cancelId: 0,
+      cancelId: 2,
       buttons: [
-        "Cancel",
-        (docStore.path) ? "Save" : "Save As...",
         "Discard and continue"
+        (docStore.path) ? "Save" : "Save As...",
+        "Cancel",
       ]
     }
     dialog.showMessageBox(windowManager.getCurrent().object, options, btnIdx => {
-      if (btnIdx === 0) return false;
+      if (btnIdx === 0) onComplete();
       if (btnIdx === 1) windowManager.customFunctions.saveIf(onComplete);
-      if (btnIdx === 2) onComplete();
+      if (btnIdx === 2) return false;
     });
   },
   newWindow() {
@@ -118,7 +187,10 @@ windowManager.customFunctions = {
     win.onReady(true, (window) => {
       window.focus();
       window.object.documentStore = {};
-      windowManager.customFunctions.newFile();
+      let title = 'Untitled script';
+      window.object.documentStore = { title, saved: true };
+      window.object.setTitle(title);
+      window.object.send('fileOpened');
     });
   }
 }
@@ -179,6 +251,15 @@ const menu = Menu.buildFromTemplate([
         type: 'separator'
       },
       {
+        label: 'Close',
+        accelerator: 'CmdOrCtrl+W',
+        click() {
+          windowManager.customFunctions.handleUnsavedChanges(() => {
+            windowManager.closeCurrent();
+          })
+        }
+      },
+      {
         label: 'Quit',
         accelerator: 'CmdOrCtrl+Q',
         click() {
@@ -214,8 +295,7 @@ ipcMain.on('contentChanged', () => {
 app.on('ready', windowManager.customFunctions.newWindow);
 
 app.on('window-all-closed', () => {
-  app.quit();
-  // if (process.platform !== 'darwin') app.quit(); }
+  if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {

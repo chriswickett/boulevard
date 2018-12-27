@@ -46,7 +46,6 @@ const buildObject = (obj) => {
 const buildFountain = obj => {
   let txt = "";
   obj.forEach(element => {
-    console.log(element);
     switch (element.type) {
       case "sceneHeader":
         return txt += `${element.text.toUpperCase()}\n`;
@@ -58,6 +57,8 @@ const buildFountain = obj => {
         return txt += `${element.text.toUpperCase()}\n`;
       case "parenthetical":
         return txt += `${element.text}\n`;
+      case "transition":
+        return txt += `${element.text.toUpperCase()}\n`;
       default: return true;
     }
   });
